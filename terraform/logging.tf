@@ -28,15 +28,21 @@ resource "google_logging_project_sink" "auto-tag-cluster" {
   unique_writer_identity = true
 }
 
-# setting the unique write role so that we are able to actually write to pubsub
-resource "google_project_iam_binding" "pubsub-writer" {
+# Set role for the unique writer to publish to pubsub
+resource "google_project_iam_member" "pubsub-writer-instance" {
   project = var.project_id
   role    = "roles/pubsub.publisher"
+  member  = google_logging_project_sink.auto-tag-instance.writer_identity
+}
 
-  # adding the unique pubsub writer we created to this role
-  members = [
-    "${google_logging_project_sink.auto-tag-instance.writer_identity}",
-    "${google_logging_project_sink.auto-tag-storage.writer_identity}",
-    "${google_logging_project_sink.auto-tag-cluster.writer_identity}"
-  ]
+resource "google_project_iam_member" "pubsub-writer-storage" {
+  project = var.project_id
+  role    = "roles/pubsub.publisher"
+  member  = google_logging_project_sink.auto-tag-storage.writer_identity
+}
+
+resource "google_project_iam_member" "pubsub-writer-cluster" {
+  project = var.project_id
+  role    = "roles/pubsub.publisher"
+  member  = google_logging_project_sink.auto-tag-cluster.writer_identity
 }

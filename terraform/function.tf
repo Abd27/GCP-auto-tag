@@ -21,12 +21,43 @@ resource "google_storage_bucket_object" "zip" {
   ]
 }
 
+# Role for function's sercice account
+resource "google_project_iam_custom_role" "custom-function-role" {
+  role_id = "CustomRoleCloudFunctionAutoTag"
+  title   = "auto-tag-resource-cloud-function"
+  permissions = [
+    "storage.buckets.get",
+    "storage.buckets.update",
+    "compute.disks.get",
+    "compute.disks.list",
+    "compute.disks.setLabels",
+    "compute.instances.get",
+    "compute.instances.setLabels"
+  ]
+}
+
+# Service account for cloud function
+resource "google_service_account" "function-sa" {
+  account_id = "function-auto-tager-sa"
+}
+
+
+resource "google_project_iam_member" "member-role" {
+  for_each = toset([
+    "roles/iam.serviceAccountUser",
+    "projects/${var.project_id}/roles/${google_project_iam_custom_role.custom-function-role.role_id}"
+  ])
+  role    = each.key
+  member  = "serviceAccount:${google_service_account.function-sa.email}"
+  project = var.project_id
+}
+
+
 # Create the Cloud function triggered by a Pub/Sub
 resource "google_cloudfunctions_function" "function" {
-  name    = var.cloud_function
-  runtime = "python39"
-
-  # Get the source code of the cloud function as a Zip compression
+  name                  = var.cloud_function
+  runtime               = "python39"
+  service_account_email = google_service_account.function-sa.email
   source_archive_bucket = google_storage_bucket.function_bucket.name
   source_archive_object = google_storage_bucket_object.zip.name
   entry_point           = "hello_pubsub"
@@ -38,6 +69,7 @@ resource "google_cloudfunctions_function" "function" {
 
   depends_on = [
     google_storage_bucket.function_bucket, # declared in `storage.tf`
-    google_storage_bucket_object.zip
+    google_storage_bucket_object.zip,
+    google_service_account.function-sa
   ]
 }
