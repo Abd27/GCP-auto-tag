@@ -52,7 +52,6 @@ resource "google_project_iam_member" "member-role" {
   project = var.project_id
 }
 
-
 # Create the Cloud function triggered by a Pub/Sub
 resource "google_cloudfunctions_function" "function" {
   name                  = var.cloud_function
