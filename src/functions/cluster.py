@@ -1,24 +1,24 @@
 from google.cloud import container_v1
 
-def tag_cluster(name: str, creator_email: str):
+import helper_functions
+
+def tag_cluster(pubsub_message):
+    creator_email, cluster_name = helper_functions.unload_pubsub(pubsub_message)
     client = container_v1.ClusterManagerClient()
-    cluster = client.get_cluster(name=name)
-    labels = {
-        'created_by' : creator_email,
-        'created-date' : cluster.create_time.split("+")[0].lower().replace(':', '_', ).replace('.', '_')
-    }
+    cluster = client.get_cluster(name=cluster_name)
+    labels = helper_functions.gen_labels(creator_email)
     # Add any existing labels
     labels.update(cluster.resource_labels)
 
     request = container_v1.SetLabelsRequest(
         label_fingerprint=cluster.label_fingerprint,
         resource_labels=labels,
-        name=name
+        name=cluster_name
     )
 
     try:
         client.set_labels(request=request)
         return True
-    except Exception as e:
-        print(str(e))
+    except Exception as err:
+        print(str(err))
         return False
