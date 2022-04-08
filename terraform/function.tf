@@ -32,7 +32,9 @@ resource "google_project_iam_custom_role" "custom-function-role" {
     "compute.disks.list",
     "compute.disks.setLabels",
     "compute.instances.get",
-    "compute.instances.setLabels"
+    "compute.instances.setLabels",
+    "container.clusters.get",
+    "container.clusters.update"
   ]
 }
 
@@ -43,11 +45,7 @@ resource "google_service_account" "function-sa" {
 
 
 resource "google_project_iam_member" "member-role" {
-  for_each = toset([
-    "roles/iam.serviceAccountUser",
-    "projects/${var.project_id}/roles/${google_project_iam_custom_role.custom-function-role.role_id}"
-  ])
-  role    = each.key
+  role    = "projects/${var.project_id}/roles/${google_project_iam_custom_role.custom-function-role.role_id}"
   member  = "serviceAccount:${google_service_account.function-sa.email}"
   project = var.project_id
 }
@@ -64,6 +62,12 @@ resource "google_cloudfunctions_function" "function" {
   event_trigger {
     event_type = "google.pubsub.topic.publish"
     resource   = "projects/${var.project_id}/topics/${var.cloud_function}"
+  }
+
+  labels = {
+    created_by  = var.createdBy
+    environment = var.enviroment
+    project     = var.project_id
   }
 
   depends_on = [

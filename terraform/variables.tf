@@ -13,3 +13,11 @@ variable "cloud_function" {
 variable "pubsub_topic" {
   default = "auto-tag-resource"
 }
+
+variable "createdBy" {
+  default = "terraform"
+}
+
+variable "enviroment" {
+  default = "sandpit"
+}

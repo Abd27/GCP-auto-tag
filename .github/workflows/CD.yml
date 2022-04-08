@@ -1,8 +1,8 @@
 name: 'Terraform'
 
-# on:
-#   push:
-#     branches: [ cd-pipeline ]
+on:
+  push:
+    branches: [ tfsec ]
 
 jobs:
   terraform:
@@ -23,6 +23,13 @@ jobs:
       with:
         credentials_json: ${{ secrets.GCS_SA_KEY }}
         project_id: ${{ secrets.GCS_PROJECT }}
+
+    # Run tfsec
+    - name: tfsec-custom-action
+      uses: crederauk/tfsec-custom-action@v25
+      with:
+        ignore-fail: true
+
 
     # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file
     - name: Setup Terraform
