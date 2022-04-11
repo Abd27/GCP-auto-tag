@@ -3,7 +3,8 @@ from google.cloud import container_v1
 import helper_functions
 
 def tag_cluster(pubsub_message):
-    creator_email, cluster_name = helper_functions.unload_pubsub(pubsub_message)
+    creator_email = pubsub_message['protoPayload']['authenticationInfo']['principalEmail']
+    cluster_name = pubsub_message['protoPayload']['resourceName']
     client = container_v1.ClusterManagerClient()
     cluster = client.get_cluster(name=cluster_name)
     labels = helper_functions.gen_labels(creator_email)
