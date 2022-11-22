@@ -43,7 +43,6 @@ resource "google_service_account" "function-sa" {
   account_id = "function-auto-tager-sa"
 }
 
-
 resource "google_project_iam_member" "member-role" {
   role    = "projects/${var.project_id}/roles/${google_project_iam_custom_role.custom-function-role.role_id}"
   member  = "serviceAccount:${google_service_account.function-sa.email}"

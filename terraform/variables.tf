@@ -1,5 +1,5 @@
 variable "project_id" {
-  default = "grad-program-shared-f4fg"
+  default = "grad-program-shared-36s4"
 }
 
 variable "region" {
